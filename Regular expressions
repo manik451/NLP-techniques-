@@ -1,0 +1,258 @@
+1. re
+
+'''
+Identifiers:
+\d = any number
+\D = anything but a number
+\s = space
+\S = anything but a space
+\w = any letter
+\W = anything but a letter
+. = any character, except for a new line
+\b = space around whole words
+\. = period. must use backslash, because . normally means any character.
+
+Modifiers:
+{1,3} = for digits, u expect 1-3 counts of digits, or "places"
++ = match 1 or more
+? = match 0 or 1 repetitions.
+* = match 0 or MORE repetitions
+$ = matches at the end of string
+^ = matches start of a string
+| = matches either/or. Example x|y = will match either x or y
+[] = range, or "variance"
+{x} = expect to see this amount of the preceding code.
+{x,y} = expect to see this x-y amounts of the precedng code
+'''
+import re
+text="101 COM    Computers 205 MAT   Mathematics 89 ENG   English"
+result1=re.split('\s',text) # split the text with a single space
+print(result1)
+result2=re.split('\s+',text) # split the text with one or more space
+print(result2) # somehow like a tokenization
+result3=re.findall('\d',text) # find out all the numbers, check the result see if this is what you want
+print(result3)
+result4=re.findall('\d{1,3}',text) # find out numbers with 1 to 3 digits
+print(result4)
+result4=re.findall('\d+',text) # this is the same
+print(result4)
+result4=re.findall('\d?',text) # not work
+print(result4)
+result4=re.findall('\d*',text) # not work, need to pay attention to the modifier
+print(result4)
+result5=re.findall('\w',text) # any letter include numbers check the results, not including punctuations
+print(result5)
+result6=re.findall('\w*',text) # notice that * means zero or more consequtive words or numbers
+print(result6)
+result6=re.findall('\w+',text) # this will get rid of all empty spaces
+print(result6)
+
+# all the course numbers and the words are mixed. How to get pure words?
+result7=re.findall('[a-z]+',text) #+ means 1 or more, and [a-z] specifies that what we need is lower case characters
+print(result7)
+result8=re.findall('[A-Z]+',text) #print only the capitalized words
+print(result8)
+result9=re.findall('[a-z]|[A-Z]',text) #only letters, both capitalized nor lower case
+print(result9)
+result10=re.findall('[A-Z][a-z]+',text) #one capitalized character followed by one or more lower case character
+print(result10)
+
+result11=re.findall('[A-Z]{3}',text) #exactly 3 capitalized characters placed together
+print(result11)
+result12=re.findall('[A-Z]{2,}',text) # more than 1 (starting from 2) capitalized characters are placed together
+print(result12)
+result13=re.findall('[A-Za-z0-9]+',text) # get any chunk of texts, no matter it is a word or a number, or anything
+print(result13)
+result14=re.findall('.+',text) #get everything, think about why '.*' will always provides an empty element?
+print(result14)
+result15=re.findall('COM',text) #get exactly what inside the '' using a "r" in the front. For example, \ is just a backslash when prefixed with a r rather than being interpreted as an escape sequence.
+print(result15)
+
+# the use of parenthesis in regular expression
+# type 1: capturing, it will capture the matched pattern in the full regular expression and only return the match part
+result16=re.findall('205 ([A-Z]+)',text) #get name of the course 205. "205 " matches exactly the 205 and a space, what is inside matches one or more capitalized characters.
+print(result16)
+result17=re.findall('89 ([A-Z]+)',text) #similarly, get the course name of course 89
+print(result17)
+
+text1="can can't can' cant"
+test1=re.findall("can('t)+",text1) # this time we need to use double quotation.
+print(test1) # only the 't is matched and returned
+
+# type 2: non-capturing
+text1="can can't can' cant"
+test1=re.findall("can(?:'t)+",text1)  # when adding ?:, the regular expression only group the patterns inside the parenthesis and apply the modifier
+print(test2)
+
+# suppose you want to extract the course names with one capitalized letter plus one lower case letter such as MgMt and MkTg
+text2="MgMt 330, ITM 336, MkTg 447"
+test2=re.findall("([A-Z][a-z])+",text2)  # this is wrong because the parenthesis here means capturing, It will capture the "Mt" and "Tg"
+print(test2)
+correct=re.findall("(?:[A-Z][a-z])+",text2) # converting non-capturing, this means many instances of one capitalized letter plus one lower case letter
+print(correct)
+
+# what if we want to match a literal parenthesis?
+text3="(510)772-8823 is a phone number"
+test3=re.findall("\(\d+\)\d+-\d+",text3)  # \( and \) means literal parenthesis
+print(test3)
+
+# now what if you only want to extract the area code?
+test4=re.findall("\((\d+)\)\d+-\d+",text3)  # you may just use a capturing parenthesis inside a pair of literal parenthesis
+print(test4)
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2. some applications of re in text mining
+
+# find out all vowels in the word
+import nltk
+import re
+word = 'we are taking text mining class'
+vowel=re.findall('[aeiou]', word)
+print(vowel.count('a'))
+
+# building a stemmer without regular expression
+def stem(word):
+    for suffix in ['ing','ly','ed','ious','ies','ive','es','s','ment']:
+        if word.endswith(suffix):
+            return word[:-len(suffix)]
+x=stem("processing")
+print(x)
+
+# building a stemmer with regular expression
+
+import re
+def stem2(word):
+    suffix=re.findall('^.*(ing|ly|ed|ious|ies|ive|es|s|ment)$', word)
+    lenth=len(suffix[0]) # remember that suffix is a list, suffix[0] is the string we need
+    return word[:-lenth]
+print(stem2('processing'))
+
+# output both the stem and the suffix
+import re
+def stem3(word):
+    suffix=re.findall(r'^(.*)(ing|ly|ed|ious|ies|ive|es|s|ment)$', word)
+    return (suffix[0][0],suffix[0][1]) # suffix is a list of a tuple [('process', 'ing')]
+print(stem3('processing'))
+
+# another similar way
+import re
+def stem4(word):
+    suffix=re.findall(r'^(.*)(ing|ly|ed|ious|ies|ive|es|s|ment)$', word)
+    stem, suffix=suffix[0]
+    return suffix, stem
+print(stem4('processing'))
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3. match
+
+#the re.match function will always search from the beginning of the string
+import re
+	
+pattern='\d{1,3}\s[A-Z]+' #first describe the pattern with regular expression, a 1 to 3 digit number, and then a space, and then a couple of capitalized characters
+if re.match(pattern,text): 
+    print("a match")
+else: print("no matched pattern")
+print(re.match(pattern,text))#now let us take a look at the components of the result. we have the span and the matched contents. But only for the first occurrence. 205 MAT also matches, but it is not reported
+
+pattern='\d{1,4}\s[A-Z]+'
+print(re.match(pattern,text)) # only print the first match
+
+text2="I took that course"
+print(re.match(pattern,text2))#when nothing matches the pattern, return 'none'
+x=re.match(pattern,text)
+print(x.group()) #return the string matched
+print(x.span()) #also try the start(), end()
+print(x.start())
+print(x.end())
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+4. beginning and end of a text string
+
+import re
+import nltk
+text='abandoned, abandon, help, abraised, open, closed'
+wordlist=nltk.word_tokenize(text)
+for w in wordlist:
+    if re.search('ed$',w) # check if the word w ends with 'ed'
+        print(w)
+		
+# same as 
+for w in wordlist:
+    if re.search('ed$',w)!=None # check if the word w ends with 'ed'
+        print(w)
+		
+# check this
+if "what":
+    print('w')	# print w
+
+if "":
+    print('w') # don't print w	
+		
+for w in wordlist:
+    if re.search('^ab',w): # check if the word starts with "ab"
+        print(w)		
+		
+import re
+import nltk
+text='dejected, object, inject, injector, majestic, majestically'
+wordlist=nltk.word_tokenize(text)
+for w in wordlist:
+    if re.search('^..j..t..$',w): #remember, . stands for anything
+        print(w)
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+5. search
+
+# the re.search function searches the entire documents
+pattern='\d{1,3}\s[A-Z]+'
+text3="1010 COM    Computers 101 MAT   Mathematics" #swith the numbers
+print(re.match(pattern,text3)) #After swiching the numbers, it returns a "none", since match function always start from the 1st character.
+print(re.search(pattern,text3)) #no problem with search, start counting from the 2nd character.
+print(re.findall('\d{1,3}\s[A-Z]+',text)) #we can replicate the function of match using this, but sometimes it is simpler by just using the match
+if len(re.findall('\d{1,3}\s[A-Z]+',text))>0:
+    print("found a match")
+else:
+    print("didn't find a match")
+	
+# but sometimes it is more convenient to use re.search
+import re
+wordlist=['gold','golf','hold','hole']
+y=[w for w in wordlist if re.search('^..[ilj][bcd]',w)!=None]
+print(y)
+
+# an corpus about onling chatting
+import nltk
+
+thepost = nltk.corpus.nps_chat.posts()
+print(thepost[0])
+print(thepost[0:3])
+
+x=nltk.corpus.nps_chat.words() # nps is Naval Postgraduate School 
+print(x)
+print(len(x)) # 10000 posts, about 40000 words
+
+# get the on-line chatting writing pattern
+import nltk
+import re
+chat_words=nltk.corpus.nps_chat.words()
+chat_words=set(w for w in chat_words)
+x=[w for w in chat_words if re.search('^m+i+n+e+$',w)!=None] # search for different writtings of 'mine'
+z= [w for w in chat_words if re.search('^[ha]+$', w)!=None] # search for ah or ha
+w=[w for w in chat_words if re.search('^[0-9]+\.[0-9]+$', w)!=None] # search for decimal numbers
+p=[w for w in chat_words if re.search('^[0-9]{4}$', w)!=None] # search for years
+q= [w for w in chat_words if re.search('^[a-z]{,5}-[a-z]{2,3}$', w)!=None] # search for hyphen connected words 
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+6. tokenize with re
+
+import re
+text='''
+Looking  for work or have a Python related position that you're trying to hire for?
+Our relaunched community-run job board is the place to go. I'm good at python
+'''
+print(re.split('\s', text)) # a more generalized way is to use [ \t\n]+, one or more spaces, tabs, new line symbols
+print(re.split('[ \t\n]+', text))
+print(re.split('\W+', text)) # split on any non-words
+
+'''
+([A-Z]\.)+ # abbreviations, e.g. U.S.A.
+\w+(-\w+)* # words with optional internal hyphens
+\$?\d+(\.\d+)?%? # currency and percentages, e.g. $12.40, 82%
+\.\.\. # ellipsis
+[.,;"'?():-_`] # these are separate tokens
+'''
