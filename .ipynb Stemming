@@ -1,0 +1,237 @@
+
+import nltk
+nltk.download('punkt')
+from nltk import word_tokenize
+from nltk import word_tokenize
+
+sample_text='''
+Trump was born and raised in the New York City borough of Queens,
+and received an economics degree from the Wharton School of the University of
+Pennsylvania. He took charge of his family's real estate business in 1971,
+renamed it to The Trump Organization, and expanded it into Manhattan.
+The company built or renovated skyscrapers, hotels, casinos, and golf courses.
+Trump later started various side ventures, including licensing his name
+for real estate and consumer products. He managed the company until his
+2017 inauguration. He co-authored several books, including The Art of the Deal.
+He owned the Miss Universe and Miss USA beauty pageants from 1996 to 2015,
+and he produced and hosted the reality television show The Apprentice from
+2003 to 2015. Forbes estimates his net worth to be $3.1 billion. 
+'''
+
+for i in nltk.sent_tokenize(sample_text):
+    print(i,'\n')
+#sentence tokenize
+print(word_tokenize(sample_text))
+
+
+#word tokenize
+for i in word_tokenize(sample_text):
+    print(i)
+
+for i in nltk.sent_tokenize(sample_text):
+    num_word=len(nltk.word_tokenize(i))   # len applied to the list
+    print('there are {} words'.format(num_word))
+    num_char=len(i) # len applied to
+    print('there are {} chars'.format(num_char))
+
+
+# In[13]:
+
+
+#calculate number of unique words
+import nltk
+print(len(set(nltk.word_tokenize(sample_text)))) # will give us list of all words, set will removing all the duplicates
+
+#lets compare it with taking out set
+print(len(nltk.word_tokenize(sample_text))) # giving us all the words but not taking out duplicates
+
+
+# In[17]:
+
+
+#Removing duplicates but keeping the original sequence of the words intact
+
+wordlist=nltk.word_tokenize(sample_text)
+uniques=dict.fromkeys(wordlist)
+print(uniques)#it will be a dict with values as none, duplicates are removed so keys are none
+print(list(uniques)) 
+
+print(''.join(list(uniques))) #to join all the words as a list
+
+
+# In[18]:
+
+
+#to check frequecy of words
+wordlist=nltk.word_tokenize(sample_text)
+uniques=dict.fromkeys(wordlist)
+for key in uniques:
+    uniques[key]=wordlist.count(key)  # it will count how many words are there in the wordlist
+print(uniques)
+
+
+# In[21]:
+
+
+#freq distribution function for counting the frequency of words
+lst=['dog','cat','dog','cat','dog','snake','dog','cat']
+x=nltk.FreqDist(lst)
+for i in x:
+    print(i,';>',x[i])  #x[i] is frequecy of that word
+
+
+# In[25]:
+
+
+print(x.max()) # most common word
+print(x.most_common(2)) # 2 most common words , o/p of this is data type is list of tuples
+print(x.most_common())print(x.most_common()[-2:])
+
+
+# In[29]:
+
+
+import nltk
+freq=nltk.FreqDist(nltk.word_tokenize(sample_text))
+print(freq.most_common(10)) #10 most common
+
+
+# In[33]:
+
+
+# to preprocess
+# remove stopword
+
+nltk.download('stopwords')
+from nltk.corpus import stopwords
+stopwords=stopwords.words('english')
+print(stopwords)
+
+
+# In[36]:
+
+
+wordlist=nltk.word_tokenize(sample_text)
+filtered=[i for i in wordlist if i not in stopwords]
+freq=nltk.FreqDist(filtered)
+print(freq.most_common(10))  #The is not removed as it is is in uppercase
+
+
+# In[38]:
+
+
+# first we will convert it to lowercase first then will remove stopwords
+wordlist=nltk.word_tokenize(sample_text)
+filtered=[i for i in wordlist if i.lower() not in stopwords]
+freq=nltk.FreqDist(filtered)
+print(freq.most_common(10)) 
+
+
+# In[44]:
+
+
+#REMOVE PUNCTUATION
+
+import string
+print(string.punctuation)
+
+from nltk.corpus import stopwords
+stopwords=stopwords.words('english')
+punctuation=string.punctuation
+wordlist=nltk.word_tokenize(sample_text)
+filtered=[i.lower() for i in wordlist if i.lower() not in stopwords
+         and i.lower() not in punctuation]
+freq=nltk.FreqDist(filtered)
+print(freq.most_common(10)) 
+
+
+# In[47]:
+
+
+#remove digits
+
+import string
+print(string.punctuation)
+
+from nltk.corpus import stopwords
+stopwords=stopwords.words('english')
+punctuation=string.punctuation
+wordlist=nltk.word_tokenize(sample_text)
+filtered=[i.lower() for i in wordlist if i.lower() not in stopwords
+         and i.lower() not in punctuation and not i.isdigit()]
+filter2=[i.lower() for i in wordlist if i.lower() not in stopwords
+        and i.isalpha()]
+freq=nltk.FreqDist(filter2)
+print(freq.most_common(10)) 
+
+
+# In[50]:
+
+
+#stemming
+
+word1=['game','gaming','gamed','games']
+word2=['learn','leatning','learns','learned','learner']
+from nltk.stem import PorterStemmer
+stemmer=PorterStemmer()
+filtered1 =[stemmer.stem(x) for x in word1]
+filtered2 = [stemmer.stem(x) for x in word2]
+print(filtered1)
+print(filtered2)
+
+
+# In[55]:
+
+
+#list of word
+
+nltk.download('wordnet')
+
+plurals=['flies','generously','dies','mules','died','agreed','owned','meeting','itemization','traditional']
+from nltk.stem import PorterStemmer
+from nltk.stem.snowball import SnowballStemmer
+
+stemmer1 = PorterStemmer()
+stemmer2 = SnowballStemmer('english')
+stemmer3 = nltk.LancasterStemmer()
+stemmer4 = nltk.WordNetLemmatizer()
+
+filtered1 =[stemmer1.stem(x) for x in plurals]
+filtered2 =[stemmer2.stem(x) for x in plurals]
+filtered3 =[stemmer3.stem(x) for x in plurals]
+filtered4 =[stemmer4.lemmatize(x) for x in plurals]
+
+print(filtered1)
+print(filtered2)
+print(filtered3)
+print(filtered4)
+
+
+# In[56]:
+
+
+dct = {'itemization':'item','flies':'fly','does':'do'}
+sentence='the itemization of the item does not fly'
+
+wordlist = nltk.word_tokenize(sentence)
+stemmed = [dct.get(x,x) for x in wordlist]  # if item is not in dict then keep that item that is what get is for
+print(''.join(stemmed))
+
+
+# In[58]:
+
+
+#POS
+
+nltk.download('averaged_perceptron_tagger')
+
+wordlist=nltk.word_tokenize(sample_text)
+pos=nltk.pos_tag(wordlist)
+print(pos)
+
+
+# In[ ]:
+
+
+
+
