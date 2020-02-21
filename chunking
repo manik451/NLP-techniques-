@@ -1,0 +1,396 @@
+# for more examples of chunking, see https://www.nltk.org/book/ch07.html
+
+1. POS
+
+import nltk
+sample="Part of Speech tagging does exactly what it sounds like, it tags each word in a sentence with the part of speech for that word. This means it labels words as noun, adjective, verb, etc. PoS tagging also covers tenses of the parts of speech."
+
+tokenized=nltk.sent_tokenize(sample) #Tokenize the corpora into sentences
+for i in tokenized:
+    words=nltk.word_tokenize(i) #Tokenzie each sentence into words
+    tagged=nltk.pos_tag(words) #tag the words
+    print (tagged) # output is a list of tuples
+	
+'''
+POS tag list:
+
+CC	coordinating conjunction
+CD	cardinal digit
+DT	determiner
+EX	existential there (like: "there is" ... think of it like "there exists")
+FW	foreign word
+IN	preposition/subordinating conjunction
+JJ	adjective	'big'
+JJR	adjective, comparative	'bigger'
+JJS	adjective, superlative	'biggest'
+LS	list marker	1)
+MD	modal	could, will
+NN	noun, singular 'desk'
+NNS	noun plural	'desks'
+NNP	proper noun, singular	'Harrison'
+NNPS	proper noun, plural	'Americans'
+PDT	predeterminer	'all the kids'
+POS	possessive ending	parent\'s
+PRP	personal pronoun	I, he, she
+PRP$	possessive pronoun	my, his, hers
+RB	adverb	very, silently,
+RBR	adverb, comparative	better
+RBS	adverb, superlative	best
+RP	particle	give up
+TO	to	go 'to' the store.
+UH	interjection	errrrrrrrm
+VB	verb, base form	take
+VBD	verb, past tense	took
+VBG	verb, gerund/present participle	taking
+VBN	verb, past participle	taken
+VBP	verb, sing. present, non-3d	take
+VBZ	verb, 3rd person sing. present	takes
+WDT	wh-determiner	which
+WP	wh-pronoun	who, what
+WP$	possessive wh-pronoun	whose
+WRB	wh-abverb	where, when
+'''
+
+# given some random amazon reviews, extract a list of adjectives, noun, etc.
+import nltk
+import re
+
+text ="""
+Initially we were happy with the product especially since we got it a very good price last Amazon Prime Day sale on July 16, 2018. We liked how we can watch and stream shows easily thru various apps like Netflix, Amazon video, Dramafever, Rakuten etc. Very lighrweight tv and just right for our needs. However to our surprise just awhile ago August 22, 2018, while streaming a drama series, the on screen display turned washed out/white screen. Turned on and off the tv several times to see if it will reboot/restart properly. Unfortunately nothing remedied it. Either you get back to that washed out screen or a totally black screen no apps at all. I have just submitted a replacement request thru Amazon customer service so we will see what happens and how fast they will address our complaint.
+Just an update, so we ended up being told by Amazon, to contact Best Buy and we did that by email at the same time indicating in the letter we want a replacement. Best Buy replied to us that it is outside of the return period if we want contact Toshiba directly. So, we did just that..with sheer frustration of course being tossed around. Toshiba nicely told me that they will send the techinician and I asked which company handle this techinician is it Toshiba or a third party. Ironically, they are coordinating with who else. The Geek Squad. Oh dear..back to Best Buy then. The Geek Squad guy came on the appointment date, just a few minutes late, but was nice enough. His assessment as discussed with whoever was on the other end of the line came down to an approval for a replacement. So we were asked to bring the tv over to our local Best Buy, gave us the confirmation and work numbers. Even gave us his business card and that of his manager if in case we encounter problems. For some reason it seems it is not common for them to service products sold by Best Buy throught the Amazon website.
+So we went to our local Best Buy. The lady was nice enough, and honest enough to say she was not familiar with an Amazon sale of a Best Buy product. So I had to tell her again the long story of how we got the tv etc etc. Finally someone helped her encode the return correctly and we had a store credit for the complete amount we paid for. However when we got the replacement tv, the price in store is slightly higher so we had to shoulder now the difference. Well, we just paid for it. So in short losing the advantage of that Prime deal sale price which did not work at all with a defective product. We do wish these three companies, Amazon, Best Buy and Toshiba iron out the way they handle requests for replacements and returns....seems initially both Amazon and Best Buy did not want to shoulder the return. If we had not insisted on availing the limited manufacturer's warranty, we would just have been left with a useless crap of a tv.
+"""
+
+wordlist=nltk.word_tokenize(text)
+pos=nltk.pos_tag(wordlist)
+adjectives=[x for x,y in pos if re.search('JJ',y)]
+noun=[x for x,y in pos if re.search('NN',y)]
+freq=nltk.FreqDist(noun)
+print(adjectives)
+print(noun)
+print(freq.most_common()[3:10]) # exclude some of the most common noun, which can be background noise.
+------------------------------------------------------------------------------------------------------------------------------------------	
+2. Chunking
+
+import nltk
+text="Our team completed the project and the department received grant money"
+sentences=nltk.sent_tokenize(text)
+print(sentences)
+for i in sentences:
+    words=nltk.word_tokenize(i)
+    tagged=nltk.pos_tag(words)
+    chunkstyle="Chunk:{<NN.?><VB.?>}" #define the chunk style, <NN.> includes <NN>, <NNS>, and <NNP>, but not <NNPS>
+    chunkparser=nltk.RegexpParser(chunkstyle) #define the chunk parser
+    chunked=chunkparser.parse(tagged)
+    print(chunked)#in the output, the line starting with "Chunk" indicates the chunks found
+    chunked.draw() #visualize chunking result 
+
+# A is a B is a good way to learn the attributes of something	
+import nltk
+text2='''He is the President of the United States. Before entering politics,he was a businessman. 
+'''
+sentences2=nltk.sent_tokenize(text2)
+for i in sentences2:
+    words=nltk.word_tokenize(i)
+    tagged=nltk.pos_tag(words)
+    chunkstyle="Chunk:{<PRP><VB.+><DT>?<NN.?>}" # <NN.?> include NN, but <NN.+> doesn't include NN, beware
+    chunkparser=nltk.RegexpParser(chunkstyle) 
+    chunked=chunkparser.parse(tagged)
+    chunked.draw()
+
+# we can use adjective + noun to quickly learn about something
+# let's take a look the combination of an adjective and a noun which is usually used
+import nltk
+text3='''By design, a blockchain is resistant to modification of the data.
+It is "an open, distributed ledger that can record transactions
+between two parties efficiently".[7]
+For use as a distributed ledger, a blockchain is typically managed by a
+peer-to-peer network collectively adhering to a protocol for inter-node
+communication and validating new blocks. Once recorded, the data in any
+given block cannot be altered retroactively without alteration of all
+blocks, which requires consensus of the network majority.
+Although blockchain records are not unalterable, blockchains is the key for 
+secured transactions, and expedited varifications. However,
+the Bitcoin payment network is
+an unregulated network, which is always criticized for illegal transactions
+'''
+sentence=nltk.sent_tokenize(text3)
+chunkstyle='Chunk:{<JJ.?><NN.*>}'
+parser=nltk.RegexpParser(chunkstyle)
+for i in sentence:
+    words=nltk.word_tokenize(i)
+    tagged=nltk.pos_tag(words)
+    chunked=parser.parse(tagged)
+    chunked.draw()
+	
+# also try the noun phrase
+chunkstyle = "NP: {<DT>?<JJ.?>*<NN.*>}" # we get information overload but more information as well.
+
+# chunk more styles at the same time
+grammar = """
+NP: {<DT|PRP\$>?<JJ.?>*<NN.*>+} 
+VP:  {<VB.?>+<DT>?<JJ.?>*<NN.*>+}
+"""  VP will not show because NP is recognized first
+
+# first style gets preference
+grammar = """
+VP:  {<VB.?>+<DT>?<JJ.?>*<NN.*>+}
+NP: {<DT|PRP\$>?<JJ.?>*<NN.*>+}
+"""
+
+# first occurrence gets preference
+import nltk
+nouns = [("money", "NN"), ("market", "NN"), ("fund", "NN")]
+grammar = "NP: {<NN><NN>}  # Chunk two consecutive nouns"
+cp = nltk.RegexpParser(grammar)
+print(cp.parse(nouns))
+(S (NP money/NN market/NN) fund/NN)
+------------------------------------------------------------------------------------------------------------------------------------------ 
+3. Extracting Chunking Elements
+
+import nltk
+brown = nltk.corpus.brown
+print(brown.tagged_sents()) # TL suffix means title
+
+import nltk
+cp=nltk.RegexpParser("Chunk:{<VB.?><NN.?>}")
+brown = nltk.corpus.brown
+for sent in brown.tagged_sents():
+    tree=cp.parse(sent)
+    for subtree in tree.subtrees():
+        if subtree.label()=='Chunk': # only show the extracted chunks
+            print(subtree)
+            print(subtree.leaves())
+# press ctrl C to stop
+
+import nltk
+text='''Donald John Trump (born June 14, 1946) is the 45th and
+current President of the United States. Before entering politics,
+he was a businessman and television personality. 
+'''
+chunkstyle="Chunk:{<PRP><VB.+><DT>?<NN.?>}" 
+chunkparser=nltk.RegexpParser(chunkstyle) 
+sentences=nltk.sent_tokenize(text)
+for i in sentences:
+    words=nltk.word_tokenize(i)
+    tagged=nltk.pos_tag(words)
+    chunked=chunkparser.parse(tagged)
+    for subtree in chunked.subtrees():
+        print(subtree)
+        if subtree.label()=='Chunk':
+            print(subtree)
+            print(subtree.leaves())
+------------------------------------------------------------------------------------------------------------------------------------------ 			
+4. Chinking
+
+# chinking is to exclude something from a chunk
+# grab everything except
+
+import nltk
+sentence = [("the", "DT"), ("little", "JJ"), ("yellow", "JJ"),
+       ("dog", "NN"), ("barked", "VBD"), ("at", "IN"),  ("the", "DT"), ("cat", "NN")]
+grammar = """
+NP: {<.*>+}          # Chunk everything
+}<VBD|IN>+{      # Chink sequences of VBD and IN
+"""
+cp = nltk.RegexpParser(grammar)
+print(cp.parse(sentence))
+cp.parse(sentence).draw()
+print(cp.parse(sentence).label())
+------------------------------------------------------------------------------------------------------------------------------------------ 
+5. evaluating chunkers
+
+from nltk.corpus import conll2000 #  this human-chunked text corpus contain 270k Wall street journal text
+print(conll2000.chunked_sents('train.txt')[0]) # there are three types of phrases: VP, NP, PP.
+print(conll2000.chunked_sents('train.txt', chunk_types=['NP'])[0]) # only shown NP
+print(conll2000.chunked_sents('test.txt', chunk_types=['NP'])[0]) # we also have the test set
+
+# evaluate an empty chunker
+import nltk
+from nltk.corpus import conll2000
+cp=nltk.RegexpParser("")
+test_sents=conll2000.chunked_sents('train.txt',chunk_types=['NP'])
+print(cp.evaluate(test_sents))
+# IOB tags more than a third words with O (meaning that tagger didn't find any chunk.)
+
+# evaluate an naive chunker
+import nltk
+from nltk.corpus import conll2000
+cp=nltk.RegexpParser("NP: {<[DJN].*>+}") # the chunk start with a DT, JJ or NN
+test_sents=conll2000.chunked_sents('train.txt',chunk_types=['NP'])
+print(cp.evaluate(test_sents))
+
+# try a traditional nonn phrase
+import nltk
+from nltk.corpus import conll2000
+cp=nltk.RegexpParser("NP: {<DT>?<JJ.?>*<NN.*>}")
+test_sents=conll2000.chunked_sents('train.txt',chunk_types=['NP'])
+print(cp.evaluate(test_sents))
+
+# why this is better? because there are many noun phrases with multiple nouns combined together
+import nltk
+from nltk.corpus import conll2000
+cp=nltk.RegexpParser("NP: {<DT>?<JJ.?>*<NN.*>+}")
+test_sents=conll2000.chunked_sents('train.txt',chunk_types=['NP'])
+print(cp.evaluate(test_sents))
+------------------------------------------------------------------------------------------------------------------------------------------ 
+6. multi-stage chunking
+
+import nltk
+'''
+create a chunker with four stage chunk grammer: noun phrases,
+prepositional phrases, verb phrases, and sentences
+'''
+import nltk
+sent="John thinks Mary saw the cat sit on the mat"
+tagged_sent=nltk.word_tokenize(sent)
+tagged_sent=nltk.pos_tag(tagged_sent)
+grammer = r"""
+  NP: {<DT|JJ|NN.*>+}          # Chunk sequences of DT, JJ, NN
+  PP: {<IN><NP>}               # Chunk prepositions followed by NP
+  CLAUSE: {<NP><VP>} 
+  VP: {<VB.*><NP|PP|CLAUSE>+} # Chunk verbs and their arguments
+  """
+cp=nltk.RegexpParser(grammer,loop=1)
+cp.parse(tagged_sent).draw()
+ 
+'''
+the 'saw ...' is apparently a VP (a VB followed by a clause), but it is not shown as a VP. Because by the time the program run for the first time, the "the cat sit on the mat" has not yet been 
+recognized as a clause. 
+So we have to run it a second time to recognize the pattern
+'''
+cp = nltk.RegexpParser(grammer, loop=2)#add a loop will do the trick.
+------------------------------------------------------------------------------------------------------------------------------------------ 
+7. The predefined categories
+
+'''
+ORGANIZATION - Georgia-Pacific Corp., WHO
+PERSON - Eddy Bonte, President Obama
+LOCATION - Murray River, Mount Everest
+DATE - June, 2008-06-29
+TIME - two fifty a m, 1:30 p.m.
+MONEY - 175 million Canadian Dollars, GBP 10.40
+PERCENT - twenty pct, 18.75 %
+FACILITY - Washington Monument, Stonehenge
+GPE - South East Asia, Midlothian
+'''
+
+# NE can be used to labeling published articles, improve search algorithms, powering content recommendation, customer support
+------------------------------------------------------------------------------------------------------------------------------------------ 
+8. An example
+
+#the nltk.ne_chunk is a trained classifier. Because new names are created very frequently. there is no way to keep a list of Person, Location, org.... 
+text='''Bush was born on July 6, 1946, in New Haven,
+Connecticut. After graduating from Yale University in 1968
+and Harvard Business School in 1975, he worked in the oil industry.
+Bush married Laura Welch in 1977 and unsuccessfully ran for the U.S.
+House of Representatives shortly thereafter.
+He later co-owned the Texas Rangers baseball team before defeating Ann
+Richards in the 1994 Texas gubernatorial election.
+Bush was elected President of the United States in 2000
+when he defeated Democratic incumbent Vice President Al Gore
+after a close and controversial win that involved a stopped recount
+in Florida. He became the fourth person to be elected president
+while receiving fewer popular votes than his opponent.[3]
+Bush is a member of a prominent political family and is the
+eldest son of Barbara and George H. W. Bush, the 41st President
+of the United States. He is only the second president to assume
+the nation's highest office after his father, following the
+footsteps of John Adams and his son, John Quincy Adams.[4]
+His brother, Jeb Bush, a former Governor of Florida, was a
+candidate for the Republican presidential nomination in the
+2016 presidential election. His paternal grandfather,
+Prescott Bush, was a United States Senator from Connecticut.'''
+import nltk
+for i in nltk.sent_tokenize(text):
+    words=nltk.word_tokenize(i)
+    tagged=nltk.pos_tag(words)
+    named_entity=nltk.ne_chunk(tagged)
+    named_entity.draw()
+
+	
+# get a list of named entities
+
+org=[]
+person=[]
+GPE=[]
+
+import nltk
+from nltk.tree import Tree
+for i in nltk.sent_tokenize(text):
+    words=nltk.word_tokenize(i)
+    tagged=nltk.pos_tag(words)
+    named_entity=nltk.ne_chunk(tagged)
+   
+    for i in named_entity.subtrees():
+        if i.label()=='ORGANIZATION':
+            org.append(' '.join([w[0] for w in i.leaves()]))
+        elif i.label()=='PERSON':
+            person.append(' '.join([w[0] for w in i.leaves()]))
+        elif i.label()=='GPE':
+            GPE.append(' '.join([w[0] for w in i.leaves()]))
+
+print(org)
+print(person)
+print(GPE)
+------------------------------------------------------------------------------------------------------------------------------------------ 
+9. Another example
+
+sentence = "Mark and John are working at Google."
+print(nltk.ne_chunk(nltk.pos_tag(nltk.word_tokenize(sentence))))
+#Mark/NNP is a level-2 leaf, part of a PERSON chunk. and/CC is a level-1 leaf, meaning it’s not part of any chunk.
+
+------------------------------------------------------------------------------------------------------------------------------------------ 
+10. IOB tagging
+'''
+B-{CHUNK_TYPE} for the word in the Beginning chunk
+I-{CHUNK_TYPE} for words Inside the chunk
+O Outside any chunk
+'''
+from nltk import conlltags2tree, tree2conlltags
+ne_tree=nltk.ne_chunk(nltk.pos_tag(nltk.word_tokenize(sentence)))
+iob_tagged = tree2conlltags(ne_tree)
+print(iob_tagged)
+ne_tree = conlltags2tree(iob_tagged)#convert back to tree
+print ne_tree
+
+
+11. extract all adjectives before the word service and all adjectives in the VP that contain the word service
+jjlist=[]
+text="I bought a laptop in September 2019. Something went wrong with the laptop and it was not starting at all. So i have to send it to Dell warehouse as they don't have any local representatives anywhere who will provide technical support. So i send the system back to the company. After checking they told me that few of the parts were damaged due to some liquid in it. Now. i remember that there was no incident happened with the system that the liquid have gone inside. Still when they told me that i have to pay for the parts i paid it. After taking the payment i got an email from the company after a week saying that they don't have parts in stock and it will take some time for them to receive it. So me left with no option have to wait for the parts to come in and the system getting repaired. The service was very disappointing. I requested them for a loaner system as it was because of them that the repair was getting delayed. But they clearly denied to provide me any kind of courtesy help. I received the system after 2 months. When i received the system it was giving me some error immediately after starting. So I called up the Dell technical team. I was on call with them for almost 2 hours 15 mins and I did everything they told me to do. Even we tried to format the system but due to problem the system was not getting formatted. So the technician again gave me one and only option that send us the system and we will repair it and give it back to you. No even after payment almost $1,200 i am unable to use the system since last more than 3 months and I don't know still how much longer. They have the worst service. This time also they gave me one and only option to send them the system. They didn't even had courtesy of saying that as this was our fault we will send someone on site inspite the guy was telling me to pay money and buy higher level warranty then only someone will come to my office to repair it."
+chunk='''
+NP: {<JJ.?><NN.*>}
+VP: {<NN.*><VB.?><RB>?<JJ.?>}
+'''
+parser=nltk.RegexpParser(chunk)
+pos=nltk.pos_tag(nltk.word_tokenize(text))
+tree=parser.parse(pos)
+for subtree in tree.subtrees():
+     if subtree.label()=="NP" and subtree.leaves()[1][0]=="service":
+          jjlist.append(subtree.leaves()[0][0])
+     if subtree.label()=="VP" and subtree.leaves()[0][0]=='service':
+          jjlist.append(subtree.leaves()[-1][0])
+print(jjlist)
+
+
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
